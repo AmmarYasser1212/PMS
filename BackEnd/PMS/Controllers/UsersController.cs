@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PMS.Application.DTO.User;
 using PMS.Application.Interfaces.Services;
-using PMS.Infrastructre.Services.userser;
+using PMS.Application.Services.userser;
 
 namespace PMS.Controllers
 {

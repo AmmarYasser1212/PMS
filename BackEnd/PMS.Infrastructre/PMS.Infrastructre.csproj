@@ -20,4 +20,8 @@
     <ProjectReference Include="..\PMS.Domain\PMS.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

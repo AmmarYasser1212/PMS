@@ -3,7 +3,6 @@ using PMS.Application.DTO.Task;
 using PMS.Application.Interfaces.Repositories;
 using PMS.Application.Interfaces.Services;
 using PMS.Domain.Entities;
-using PMS.Infrastructre.Services.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 
 
 
-namespace PMS.Infrastructre.Services.tagservices
+namespace PMS.Application.Services.tagservices
 {
     public class TagService : ITagServices
     {

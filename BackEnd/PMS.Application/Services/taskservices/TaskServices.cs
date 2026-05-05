@@ -2,7 +2,6 @@
 using PMS.Application.Interfaces.Repositories;
 using PMS.Application.Interfaces.Services;
 using PMS.Domain.Entities;
-using PMS.Infrastructre.Services.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PMS.Infrastructre.Services.taskservices
+namespace PMS.Application.Services.taskservices
 {
     public class TaskServices : ITaskService
     {

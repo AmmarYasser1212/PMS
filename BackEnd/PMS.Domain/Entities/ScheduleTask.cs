@@ -17,7 +17,8 @@ namespace PMS.Domain.Entities
         public int? TaskId { get; set; }
         public TaskItem? Task { get; set; }
 
-        public DateTime PlannedTime { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
         [Required, MaxLength(20)]
         public string Status { get; set; }
     }

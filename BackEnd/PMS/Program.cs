@@ -6,7 +6,7 @@ using PMS.Application.Behaviors;
 using PMS.Application.Interfaces.Services;
 using PMS.Infrastructre.Data;
 using PMS.Infrastructre.Services.UnitOfWork;
-using PMS.Infrastructre.Services.userser;
+
 
 namespace PMS
 {
@@ -29,9 +29,9 @@ namespace PMS
 
             // builder.Services.AddTransient(typeof(IunitOfWork<,>), typeof(UnitOfWork<,>));
           //  builder.Services.AddTransient<IStudentServices, StudentServices>();
-            builder.Services.AddMediatR(options => options.RegisterServicesFromAssembly(typeof(Application.IAssemplyMarker).Assembly));
-            builder.Services.AddValidatorsFromAssembly(typeof(Application.IAssemplyMarker).Assembly);
-            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviors<,>));
+            //builder.Services.AddMediatR(options => options.RegisterServicesFromAssembly(typeof(Application.IAssemplyMarker).Assembly));
+            //builder.Services.AddValidatorsFromAssembly(typeof(Application.IAssemplyMarker).Assembly);
+           // builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviors<,>));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

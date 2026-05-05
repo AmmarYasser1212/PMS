@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 using PMS.Application.DTO.Category;
 using PMS.Application.Interfaces.Repositories;
 using PMS.Application.Interfaces.Services;
-using PMS.Application.Interfaces;
 using PMS.Domain.Entities;
-using PMS.Infrastructre.Services.UnitOfWork;
 
-namespace PMS.Infrastructre.Services.categoryser
+namespace PMS.Application.Services.categoryser
 {
     public class Categoryservice : ICategoryService
     {

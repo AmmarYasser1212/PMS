@@ -1,16 +1,14 @@
 ﻿using PMS.Application.DTO.User;
 using PMS.Application.Interfaces.Repositories;
 using PMS.Application.Interfaces.Services;
-using PMS.Application.Interfaces;
 using PMS.Domain.Entities;
-using PMS.Infrastructre.Services.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PMS.Infrastructre.Services.userser
+namespace PMS.Application.Services.userser
 {
     public class UserServices :IUserServices
     {

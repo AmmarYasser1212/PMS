@@ -17,19 +17,20 @@ namespace PMS.Domain.Entities
         public int TaskId { get; set; }
 
         [Required]
-        public DateTime StartTime { get; set; }
+        public int UserId { get; set; }
 
-        public DateTime? EndTime { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime StartedAt { get; set; }    
+        public DateTime? EndedAt { get; set; }        
 
-        public int? Duration { get; set; }
+        public int AccumulatedSeconds { get; set; }  
+        public bool IsPaused { get; set; }
+   
+      
+        public int CurrentDuration => IsPaused
+            ? AccumulatedSeconds
+            : AccumulatedSeconds + (int)(DateTime.UtcNow - StartedAt).TotalSeconds;
 
-        [Required, MaxLength(20)]
-        public string Status { get; set; }
-
-        public DateTime? PausedAt { get; set; }
-
-        public int TotalPausedSeconds { get; set; } = 0;
-
-        public TaskItem Task { get; set; }=new  TaskItem();
+        public TaskItem Task { get; set; }
     }
 }
