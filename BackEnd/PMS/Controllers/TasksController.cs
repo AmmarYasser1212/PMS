@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PMS.Application.DTO.Task;
 using PMS.Application.Interfaces.Services;
+using PMS.Helpers;
 
 namespace PMS.Controllers
 {
+    [Authorize(Roles = "User")]
     [ApiController]
     [Route("api/[controller]")]
     public class TasksController : Controller
@@ -16,83 +19,91 @@ namespace PMS.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateTaskDto dto,int? CategoryId)
         {
-            var result = await _taskService.CreateAsync(dto);
+            var UserId = User.GetBusinessUserId();
+            var result = await _taskService.CreateAsync(dto,UserId,CategoryId);
+            if(result==null)
+                return BadRequest();
             //return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
             return Ok(result);
-        }
+        }//
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id, [FromQuery] int userId)
+        [HttpGet("{Taskid}")]
+        public async Task<IActionResult> GetById(int Taskid)
         {
-            var task = await _taskService.GetByIdAsync(id, userId);
+            var UserId = User.GetBusinessUserId();
+            var task = await _taskService.GetByIdAsync(Taskid, UserId);
             if (task == null)
                 return NotFound();
 
             return Ok(task);
-        }
+        }//
 
         [HttpGet]
-        public async Task<IActionResult> GetByUser([FromQuery] int userId)
+        public async Task<IActionResult> GetAllTasks()
         {
-            var tasks = await _taskService.GetByUserAsync(userId);
+            var UserId = User.GetBusinessUserId();
+            var tasks = await _taskService.GetByUserAsync(UserId);
+            if(tasks == null)
+                return NotFound();
             return Ok(tasks);
-        }
+        }//
 
         [HttpPut]
-        public async Task<IActionResult> Update([FromBody] UpdateTaskDto dto)
+        public async Task<IActionResult> Update([FromBody] UpdateTaskDto dto,int TaskId)
         {
-            var result = await _taskService.UpdateAsync(dto);
+            var UserId = User.GetBusinessUserId();
+            var result = await _taskService.UpdateAsync(dto,TaskId,UserId);
             if (!result)
                 return NotFound();
 
             return Ok();
-        }
+        }//
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id, [FromQuery] int userId)
+        public async Task<IActionResult> DeleteById(int Taskid)
         {
-            var result = await _taskService.DeleteAsync(id, userId);
+            var UserId = User.GetBusinessUserId();
+            var result = await _taskService.DeleteAsync(Taskid, UserId);
             if (!result)
                 return NotFound();
 
             return Ok();
-        }
+        }//
 
-        [HttpPatch("{id}/status")]
-        public async Task<IActionResult> ChangeStatus(
-    int id,
-    [FromQuery] string status,
-    [FromQuery] int userId)
+
+
+        [HttpPatch("{Taskid}/status")]
+        public async Task<IActionResult> ChangeStatus(int TaskId,[FromQuery] string status)
         {
-            var result = await _taskService.ChangeStatusAsync(id, status, userId);
+           var  userId = User.GetBusinessUserId();
+            var result = await _taskService.ChangeStatusAsync(TaskId, status, userId);
             if (!result)
-                return NotFound();
+                return BadRequest();
 
             return Ok();
-        }
+        }//
+
+
 
         [HttpGet("filter")]
-        public async Task<IActionResult> Filter(
-    [FromQuery] int userId,
-    [FromQuery] int? categoryId,
-    [FromQuery] int? tagId,
-    [FromQuery] DateTime? from,
-    [FromQuery] DateTime? to)
+        public async Task<IActionResult> Filter([FromQuery] int? categoryId,[FromQuery] int? tagId,[FromQuery] DateTime? from,[FromQuery] DateTime? to)
         {
-            var tasks = await _taskService.FilterAsync(userId, categoryId, tagId, from, to);
+            var UserId = User.GetBusinessUserId();
+            var tasks = await _taskService.FilterAsync(UserId, categoryId, tagId, from, to);
+            if (tasks==null) return NotFound();
             return Ok(tasks);
-        }
+        }//
 
         [HttpGet("search")]
-        public async Task<IActionResult> Search(
-    [FromQuery] int userId,
-    [FromQuery] string keyword)
+        public async Task<IActionResult> Search([FromQuery] string keyword)
         {
-            var tasks = await _taskService.SearchAsync(userId, keyword);
+            var UserId = User.GetBusinessUserId();
+            var tasks = await _taskService.SearchAsync(UserId, keyword);
+            if(tasks==null) return NotFound();
             return Ok(tasks);
-        }
+        }//
 
     }
 }

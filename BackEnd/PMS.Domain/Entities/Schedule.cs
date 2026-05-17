@@ -18,6 +18,9 @@ namespace PMS.Domain.Entities
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
+        public TimeSpan StartWorkingHour { get; set; }
+        public TimeSpan EndWorkingHour { get; set; }
+
         public bool IsActive { get; set; }=true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

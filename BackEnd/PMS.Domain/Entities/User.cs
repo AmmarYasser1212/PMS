@@ -7,18 +7,13 @@ using System.Threading.Tasks;
 
 namespace PMS.Domain.Entities
 {
-    public class User
+    public class User 
     {
-        public int Id { get; set; }
+        public int Id { get; set; } 
 
-        [Required]
-        [EmailAddress]
-        [MaxLength(100)]
-        public string Email { get; set; } = null!;
+         public string Email { get; set; } = null!;
 
-        [Required]
-        [MaxLength(255)]
-        public string PasswordHash { get; set; } = null!;
+        public string IdentityUserId { get; set; } = null!;
 
         [Required]
         [MinLength(3), MaxLength(50)]

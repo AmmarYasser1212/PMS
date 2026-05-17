@@ -13,7 +13,7 @@ namespace PMS.Application.Interfaces.Services
         Task<int> CreateUserAsync(CreateUserDto dto);
         Task<UserDto?> GetByIdAsync(int id);
         Task<List<UserDto>> GetAllAsync();
-        Task<bool> UpdateUserAsync(UpdateUserDto dto);
+        Task<bool> UpdateUserAsync(UpdateUserDto dto,int UserId);
         Task<bool> DeleteUserAsync(int id);
 
 

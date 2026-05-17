@@ -11,8 +11,8 @@ namespace PMS.Application.Interfaces.Services
     public interface ITagServices
     {
 
-        Task<TagDto> CreateAsync(CreateTagDto dto);
-        Task<bool> UpdateAsync(UpdateTagDto dto);
+        Task<TagDto> CreateAsync(CreateTagDto dto,int UserId);
+        Task<bool> UpdateAsync(UpdateTagDto dto,int TagId,int UserId);
         Task<bool> DeleteAsync(int tagid, int userid);
 
         Task<TagDto?> GetByIdAsync(int tagId, int userId);

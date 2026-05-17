@@ -9,11 +9,7 @@ namespace PMS.Application.DTO.Tag
 {
     public class UpdateTagDto
     {
-        [Required(ErrorMessage ="ID is required")]
-         public int Id { get; set; }
-
-        [Required(ErrorMessage = "User ID is required")]
-        public int UserId { get; set; }
+       
 
         [Required(ErrorMessage = "Name is required")]
         public string? Name { get; set; }

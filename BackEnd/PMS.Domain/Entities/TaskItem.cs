@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PMS.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,23 +10,51 @@ namespace PMS.Domain.Entities
 {
     public class TaskItem
     {
+        //public int Id { get; set; }
+
+        //[Required, MaxLength(200)]
+        //public string Title { get; set; }
+
+        //[MaxLength(2000)]
+        //public string ?Description { get; set; }
+
+        //public DateTime? Date { get; set; }
+
+        //public TimeSpan? Time { get; set; }
+
+        //[Required, MaxLength(20)]
+        //public string Priority { get; set; } = null!;
+
+        //[Required, MaxLength(20)]
+        //public string Status { get; set; }= null!;
+        ////////////////////////////////////////////
+
         public int Id { get; set; }
 
-        [Required, MaxLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = null!;
 
-        [MaxLength(2000)]
-        public string ?Description { get; set; }
+        public string? Description { get; set; }
 
-        public DateTime? Date { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public TimeSpan? Time { get; set; }
+        // Core input for AI
+        public TimeSpan Duration { get; set; }
 
-        [Required, MaxLength(20)]
-        public string Priority { get; set; } = null!;
+        public DateTime? Deadline { get; set; }
 
-        [Required, MaxLength(20)]
-        public string Status { get; set; }= null!;
+        // Optional constraints
+        public DateTime? EarliestStart { get; set; }
+        public DateTime? LatestEnd { get; set; }
+
+        // AI ranking factors
+        public int Priority { get; set; } // 1 - 10
+        public int EffortLevel { get; set; } // 1 - 5
+
+        // Status tracking
+        public Taskstatus Status { get; set; } = Taskstatus.Todo;
+
+
+
 
         [Required]
         public int UserId { get; set; }

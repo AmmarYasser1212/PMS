@@ -28,6 +28,8 @@ namespace PMS.Application.Interfaces.Repositories
         public Task<int> DeleteWhereAsync(Expression<Func<TEntity, bool>> predicate);
 
         public Task<TEntity?> FindOneAsync(Expression<Func<TEntity, bool>> predicate);
+
+        public Task DeleteRangeAsync(IEnumerable<TEntity> entities);
         //public  Task<int> SaveChangesAsync();
 
 

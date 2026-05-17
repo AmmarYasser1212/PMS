@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PMS.Application.DTO.Category;
 using PMS.Application.Interfaces.Services;
+using PMS.Domain.Entities;
+using PMS.Helpers;
 
 namespace PMS.Controllers
 {
+    [Authorize(Roles ="User")]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
@@ -18,30 +22,35 @@ namespace PMS.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateCategoryDto dto)
         {
-            var id = await _service.CreateAsync(dto);
+            var UserId = User.GetBusinessUserId();
+            var id = await _service.CreateAsync(dto, UserId);
             return Ok(id);
         }
         [HttpGet]
-        public async Task<IActionResult> GetByUser([FromQuery] int userId)
+        public async Task<IActionResult> GetAllCategories()
         {
-            var data = await _service.GetByUserAsync(userId);
+            var UserId = User.GetBusinessUserId();
+            var data = await _service.GetByUserAsync(UserId);
             return Ok(data);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id, [FromQuery] int userId)
+
+        [HttpGet("{CategoryId}")]
+        public async Task<IActionResult> Get(int CategoryId)
         {
-            var data = await _service.GetByIdAsync(id, userId);
+            var UserId = User.GetBusinessUserId();
+            var data = await _service.GetByIdAsync(CategoryId, UserId);
             if (data == null)
                 return NotFound();
 
             return Ok(data);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update(CategoryDto dto)
+        [HttpPut("{CategoryId}")]
+        public async Task<IActionResult> Update(UpdateCategory dto,int CategoryId)
         {
-            var result = await _service.UpdateAsync(dto);
+            var UserId = User.GetBusinessUserId();
+            var result = await _service.UpdateAsync(dto,CategoryId,UserId);
             if (!result)
                 return NotFound();
 
@@ -49,9 +58,10 @@ namespace PMS.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id, [FromQuery] int userId)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = await _service.DeleteAsync(id, userId);
+            var UserId = User.GetBusinessUserId();
+            var result = await _service.DeleteAsync(id, UserId);
             if (!result)
                 return NotFound();
 

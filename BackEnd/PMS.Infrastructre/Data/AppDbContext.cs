@@ -1,4 +1,6 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PMS.Domain.Entities;
 using PMS.Infrastructre.Data.config;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace PMS.Infrastructre.Data
 {
-    public class AppDbContext :DbContext
+    public class AppDbContext : IdentityDbContext<AppUser>
     {
 
 

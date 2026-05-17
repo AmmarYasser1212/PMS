@@ -25,11 +25,11 @@ namespace PMS.Application.Services.categoryser
             _scheduleTaskRepo=scheduleTaskRepo;
         }
 
-        public async Task<int> CreateAsync(CreateCategoryDto dto)
+        public async Task<int> CreateAsync(CreateCategoryDto dto, int UserId)
         {
             
             var exists = await _repo.ExistsAsync(c =>
-                c.UserId == dto.UserId && c.Name == dto.Name);
+                c.UserId == UserId && c.Name == dto.Name);
 
             if (exists)
                 throw new Exception("Category already exists");
@@ -37,7 +37,7 @@ namespace PMS.Application.Services.categoryser
             var category = new Category
             {
                 Name = dto.Name,
-                UserId = dto.UserId
+                UserId = UserId
             };
 
             await _repo.AddAsync(category);
@@ -72,9 +72,9 @@ namespace PMS.Application.Services.categoryser
             };
         }
 
-        public async Task<bool> UpdateAsync(CategoryDto dto)
+        public async Task<bool> UpdateAsync(UpdateCategory dto, int Id, int UserId)
         {
-            var category = await _repo.FindOneAsync(c=>c.Id==dto.Id&&c.UserId==dto.UserId);
+            var category = await _repo.FindOneAsync(c=>c.Id==Id&&c.UserId==UserId);
             if (category == null)
                 return false;
 

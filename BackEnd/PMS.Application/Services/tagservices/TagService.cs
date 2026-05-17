@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace PMS.Application.Services.tagservices
 {
-    public class TagService : ITagServices
+    public class TagService : ITagServices 
     {
         private readonly Irepsitory<Tag> _tagRepo;
         private readonly Irepsitory<TaskTag> _taskTagRepo;
@@ -32,11 +32,11 @@ namespace PMS.Application.Services.tagservices
             _uow = uow;
         }
 
-        public async Task<TagDto> CreateAsync(CreateTagDto dto)
+        public async Task<TagDto> CreateAsync(CreateTagDto dto, int UserId)
         {
             
             var exists = await _tagRepo.ExistsAsync(
-                t => t.UserId == dto.UserId && t.Name == dto.Name);
+                t => t.UserId == UserId && t.Name == dto.Name);
 
             if (exists)
                 throw new Exception("Tag already exists");
@@ -44,7 +44,7 @@ namespace PMS.Application.Services.tagservices
             var tag = new Tag
             {
                 Name = dto.Name,
-                UserId = dto.UserId
+                UserId = UserId
             };
 
             await _tagRepo.AddAsync(tag);
@@ -57,9 +57,9 @@ namespace PMS.Application.Services.tagservices
             };
         }
 
-        public async Task<bool> UpdateAsync(UpdateTagDto dto)
+        public async Task<bool> UpdateAsync(UpdateTagDto dto, int TagId, int UserId)
         {
-            var tag = await _tagRepo.FindOneAsync(t=>t.Id==dto.Id&&t.UserId==dto.UserId);
+            var tag = await _tagRepo.FindOneAsync(t=>t.Id==TagId&&t.UserId==UserId);
             if (tag == null) return false;
 
             if (dto.Name != null)

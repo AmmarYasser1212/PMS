@@ -9,20 +9,36 @@ namespace PMS.Application.DTO.Task
 {
     public class UpdateTaskDto
     {
-        [Required(ErrorMessage ="ID is required")]
-        public int Id { get; set; }
+      
 
-        [Required(ErrorMessage = "User ID is required")]
-        public int UserId {  get; set; }
+        // ✏️ Editable fields
+        [MaxLength(200)]
         public string? Title { get; set; }
+
+        [MaxLength(2000)]
         public string? Description { get; set; }
 
-        public DateTime? Date { get; set; }
-        public TimeSpan? Time { get; set; }
+        // ⏱ Core AI fields
+        [Range(1, int.MaxValue)]
+        public int? DurationInMinutes { get; set; }
 
-        public string? Priority { get; set; }
-        public string? Status { get; set; }
+        public DateTime? Deadline { get; set; }
 
+        public DateTime? EarliestStart { get; set; }
+
+        public DateTime? LatestEnd { get; set; }
+
+        // 🎯 AI ranking
+        [Range(1, 10)]
+        public int? Priority { get; set; }
+
+        [Range(1, 5)]
+        public int? EffortLevel { get; set; }
+
+        // 📊 Status
+        public TaskStatus? Status { get; set; }
+
+        // 📁 Category
         public int? CategoryId { get; set; }
     }
 }

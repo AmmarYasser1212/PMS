@@ -100,18 +100,24 @@ namespace PMS.Infrastructre.Repository
                 
         }
 
+        public async Task DeleteRangeAsync(IEnumerable<TEntity> entities)
+        {
+            _entity.RemoveRange(entities);
+            await Task.CompletedTask;
+        }
+
         //public async Task<int> SaveChangesAsync()
         //{
         //    return await _context.SaveChangesAsync();
         //}
-    //    public async Task UpdateWhereAsync<TProperty>(
-    //Expression<Func<TEntity, bool>> predicate,
-    //Expression<Func<TEntity, TProperty>> property,
-    //TProperty value)
-    //    {
-    //        await _entity
-    //            .Where(predicate)
-    //            .ExecuteUpdateAsync(s => s.SetProperty(property, value));
-    //    }
+        //    public async Task UpdateWhereAsync<TProperty>(
+        //Expression<Func<TEntity, bool>> predicate,
+        //Expression<Func<TEntity, TProperty>> property,
+        //TProperty value)
+        //    {
+        //        await _entity
+        //            .Where(predicate)
+        //            .ExecuteUpdateAsync(s => s.SetProperty(property, value));
+        //    }
     }
 }

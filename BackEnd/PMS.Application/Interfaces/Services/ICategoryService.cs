@@ -11,10 +11,10 @@ namespace PMS.Application.Interfaces.Services
 {
     public interface ICategoryService
     {
-        Task<int> CreateAsync(CreateCategoryDto dto);
+        Task<int> CreateAsync(CreateCategoryDto dto, int UserId);
         Task<List<CategoryDto>> GetByUserAsync(int userId);
         Task<CategoryDto?> GetByIdAsync(int id,int userid);
-        Task<bool> UpdateAsync(CategoryDto dto);
+        Task<bool> UpdateAsync(UpdateCategory dto, int Id,int UserId);
         Task<bool> DeleteAsync(int id, int userid);
     }
 }
