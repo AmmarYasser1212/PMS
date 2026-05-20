@@ -12,7 +12,7 @@ namespace PMS.Application.Interfaces.Services
     {
         Task<TaskDto> CreateAsync(CreateTaskDto dto, int UserId, int? CategoryId);//
         Task<bool> UpdateAsync(UpdateTaskDto dto,int TaskId,int UserId);//
-        Task<bool> DeleteAsync(int id,int userId);//
+        Task<DeleteTaskResult> DeleteAsync(int id,int userId);//
 
         Task<TaskDto?> GetByIdAsync(int taskid, int userId);//
         Task<List<TaskDto>> GetByUserAsync(int userId);//
@@ -22,5 +22,7 @@ namespace PMS.Application.Interfaces.Services
         Task<List<TaskDto>> FilterAsync(int userId, int? categoryId, int? tagId, DateTime? from, DateTime? to);//
 
         Task<List<TaskDto>> SearchAsync(int userId, string keyword);//
+
+        public Task<DeleteTaskResult> ResolveDeleteAsync(int taskId, int userId, string option, int newTaskId);
     }
 }

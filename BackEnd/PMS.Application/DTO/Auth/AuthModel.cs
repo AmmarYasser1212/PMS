@@ -9,6 +9,7 @@ namespace PMS.Application.DTO.Auth
 {
     public class AuthModel
     {
+
         public string Message { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
@@ -18,10 +19,10 @@ namespace PMS.Application.DTO.Auth
 
         public List<string>Roles { get; set; }
 
-        //public DateTime ExpiresOn { get; set; }
+        public DateTime ExpiresOn { get; set; }
 
-        [JsonIgnore]
-        public string? RefreshToken { get; set; }
+       
+        public string RefreshToken { get; set; }
 
         public DateTime RefreshTokenExpiration { get; set; }
 

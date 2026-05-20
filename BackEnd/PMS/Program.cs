@@ -1,7 +1,7 @@
-
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +24,8 @@ using PMS.Infrastructre.Services.AuthService;
 using PMS.Infrastructre.Services.UnitOfWork;
 using System.Text;
 
+using Microsoft.OpenApi.Models;
+
 
 namespace PMS
 {
@@ -38,7 +40,15 @@ namespace PMS
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            //builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "PMS API",
+                    Version = "v1"
+                });
+            });
 
             var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
                          ?? throw new InvalidOperationException("JWT configuration is missing");
@@ -48,7 +58,7 @@ namespace PMS
 
             builder.Services.AddDbContext<AppDbContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("cs")));
-
+        
             builder.Services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,
                options =>
                {
@@ -66,7 +76,20 @@ namespace PMS
                            Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
                        ValidateLifetime = true
                    };
+                  //  builder.Services.AddEndpointsApiExplorer();
+                   options.Events = new JwtBearerEvents
+                   {
+
+                       OnMessageReceived = context =>
+                       {
+                           context.Token = context.Request.Cookies["Token"];
+
+                           return Task.CompletedTask;
+                       }
+                   };
                });
+
+
 
             //active identity
 
@@ -115,17 +138,19 @@ namespace PMS
                             .AllowCredentials();
                     });
             });
-
+          //  builder.Services.AddOpenApi();
             // builder.Services.AddTransient(typeof(IunitOfWork<,>), typeof(UnitOfWork<,>));
             //  builder.Services.AddTransient<IStudentServices, StudentServices>();
             //builder.Services.AddMediatR(options => options.RegisterServicesFromAssembly(typeof(Application.IAssemplyMarker).Assembly));
             //builder.Services.AddValidatorsFromAssembly(typeof(Application.IAssemplyMarker).Assembly);
             // builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviors<,>));
-             var app = builder.Build();
-
+  builder.Services.AddOpenApi();
+            var app = builder.Build();
+          
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }

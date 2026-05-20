@@ -1,4 +1,5 @@
-﻿using PMS.Application.DTO.Tag;
+﻿using PMS.Application.DTO.NewFolder;
+using PMS.Application.DTO.Tag;
 using PMS.Application.DTO.Task;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace PMS.Application.Interfaces.Services
     {
 
         Task<TagDto> CreateAsync(CreateTagDto dto,int UserId);
-        Task<bool> UpdateAsync(UpdateTagDto dto,int TagId,int UserId);
+        Task<MessageHand> UpdateAsync(UpdateTagDto dto,int TagId,int UserId);
         Task<bool> DeleteAsync(int tagid, int userid);
 
         Task<TagDto?> GetByIdAsync(int tagId, int userId);

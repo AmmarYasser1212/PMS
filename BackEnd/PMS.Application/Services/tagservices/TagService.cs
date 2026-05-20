@@ -1,4 +1,5 @@
-﻿using PMS.Application.DTO.Tag;
+﻿using PMS.Application.DTO.NewFolder;
+using PMS.Application.DTO.Tag;
 using PMS.Application.DTO.Task;
 using PMS.Application.Interfaces.Repositories;
 using PMS.Application.Interfaces.Services;
@@ -39,7 +40,10 @@ namespace PMS.Application.Services.tagservices
                 t => t.UserId == UserId && t.Name == dto.Name);
 
             if (exists)
-                throw new Exception("Tag already exists");
+                return new TagDto
+                {
+                   existAlready = true,
+                };
 
             var tag = new Tag
             {
@@ -57,10 +61,17 @@ namespace PMS.Application.Services.tagservices
             };
         }
 
-        public async Task<bool> UpdateAsync(UpdateTagDto dto, int TagId, int UserId)
+        public async Task<MessageHand> UpdateAsync(UpdateTagDto dto, int TagId, int UserId)
         {
             var tag = await _tagRepo.FindOneAsync(t=>t.Id==TagId&&t.UserId==UserId);
-            if (tag == null) return false;
+            if (tag == null) return new MessageHand { Message="notFound"};
+///////////
+            var exists = await _tagRepo.ExistsAsync(
+              t => t.UserId == UserId && t.Name == dto.Name&&t.Id!=TagId);
+
+            if (exists)
+                return new MessageHand { Message = "Already Exist" };
+            /////////////////
 
             if (dto.Name != null)
                 tag.Name = dto.Name;
@@ -68,7 +79,7 @@ namespace PMS.Application.Services.tagservices
             await _tagRepo.UpdateAsync(tag);
             await _uow.SaveChangesAsync();
 
-            return true;
+            return new MessageHand { Message = "Updated" };
         }
 
         public async Task<bool> DeleteAsync(int tagid,int userid)
@@ -94,10 +105,10 @@ namespace PMS.Application.Services.tagservices
         }
         public async Task<bool> RemoveTagFromTask(int taskId, int tagId,int userid)
         {
-           var num= await _taskTagRepo.DeleteWhereAsync(
+           var deletedCount = await _taskTagRepo.DeleteWhereAsync(
                 tt => tt.TaskId == taskId && tt.TagId == tagId&&tt.Task.UserId==userid&&tt.Tag.UserId==userid);
 
-            return num > 0;
+            return deletedCount > 0;
 
         }
 
@@ -121,6 +132,16 @@ namespace PMS.Application.Services.tagservices
         public async Task<bool> AssignTagsToTask(int taskId, List<int> tagIds,int userid)
         {
 
+            if (tagIds == null || !tagIds.Any())
+                return false;
+
+            // check task exists and belongs to user
+            var taskExists = await _taskRepo.ExistsAsync(
+                t => t.Id == taskId && t.UserId == userid);
+
+            if (!taskExists)
+                return false;
+
             var taskTags = await _taskTagRepo.FindAsync(
       t => t.TaskId == taskId &&
            t.Task.UserId == userid &&
@@ -135,6 +156,10 @@ namespace PMS.Application.Services.tagservices
                 .Select(t => t.Id)
                 .ToHashSet();
 
+
+            if (!validTagIds.Any())
+                return false;
+
             var newtags = validTagIds
                 .Where(id => !existing.Contains(id))
                 .Select(id => new TaskTag
@@ -142,6 +167,10 @@ namespace PMS.Application.Services.tagservices
                     TaskId = taskId,
                     TagId = id,
                 });
+
+            if (!newtags.Any())
+                return false;
+
 
             foreach (var tag in newtags)
                 await _taskTagRepo.AddAsync(tag);

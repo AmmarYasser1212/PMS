@@ -62,7 +62,8 @@ namespace PMS.Controllers
            var UserId = User.GetBusinessUserId();
             var result = await _userServices.DeleteUserAsync(UserId);
             if (!result)
-                return NotFound();
+                return BadRequest();
+
 
             return Ok();
         }

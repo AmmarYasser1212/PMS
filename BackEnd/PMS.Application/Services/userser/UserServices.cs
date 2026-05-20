@@ -184,13 +184,13 @@ namespace PMS.Application.Services.userser
             var user = await _context.GetByIdAsync(UserId);
             if (user == null) return false;
 
-            if (dto.Name != null)
-                user.Name = dto.Name;
+            if (!string.IsNullOrWhiteSpace(dto.Name))
+                user.Name = dto.Name.Trim();
 
-            if (dto.Avatar != null)
+            if (!string.IsNullOrWhiteSpace(dto.Avatar))
                 user.Avatar = dto.Avatar;
 
-          //  await _context.UpdateAsync(user);  entity من  طالما جبت db 
+            //  await _context.UpdateAsync(user);  entity من  طالما جبت db 
 
             await _uow.SaveChangesAsync();
 

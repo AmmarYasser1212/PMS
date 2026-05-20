@@ -32,7 +32,7 @@ namespace PMS.Application.Services.categoryser
                 c.UserId == UserId && c.Name == dto.Name);
 
             if (exists)
-                throw new Exception("Category already exists");
+                return -1;
 
             var category = new Category
             {
@@ -48,7 +48,7 @@ namespace PMS.Application.Services.categoryser
 
         public async Task<List<CategoryDto>> GetByUserAsync(int userId)
         {
-            var data = await _repo.FindAsyncAdvanced(c => c.UserId == userId,c => new CategoryDto
+            var data = await _repo.FindAsyncAdvanced(c => c.UserId == userId, c => new CategoryDto
             {
                 Id = c.Id,
                 Name = c.Name
@@ -72,10 +72,21 @@ namespace PMS.Application.Services.categoryser
             };
         }
 
-        public async Task<bool> UpdateAsync(UpdateCategory dto, int Id, int UserId)
+        public async Task<bool> UpdateAsync(UpdateCategory dto, int id, int userId)
         {
-            var category = await _repo.FindOneAsync(c=>c.Id==Id&&c.UserId==UserId);
+            var category = await _repo.FindOneAsync(c =>
+                   c.Id == id &&
+                   c.UserId == userId);
+
             if (category == null)
+                return false;
+
+            var exists = await _repo.ExistsAsync(c =>
+                c.UserId == userId &&
+                c.Name == dto.Name &&
+                c.Id != id);
+
+            if (exists)
                 return false;
 
             category.Name = dto.Name;

@@ -41,6 +41,8 @@ namespace PMS.Application.Services.taskservices
 
             if (task == null) return false;
 
+
+
             if (!Enum.TryParse<Taskstatus>(status, true, out var parsedStatus))
                 return false;
 
@@ -152,10 +154,50 @@ namespace PMS.Application.Services.taskservices
             };
         }
 
-        public async Task<bool> DeleteAsync(int taskId, int userId)
+        public async Task<DeleteTaskResult> DeleteAsync(int taskId, int userId)
         {
+            var check = await CheckBeforeDeleteTaskAsync(taskId, userId);
 
-            return await _taskRepo.DeleteWhereAsync(t => t.Id == taskId && t.UserId == userId) > 0;
+            // ❌ not found
+            if (!check.CanDeleteDirectly && check.Message == "Task not found")
+            {
+                return new DeleteTaskResult
+                {
+                    Success = false,
+                    NotFound = true,
+                    Message = check.Message
+                };
+            }
+
+            // ✔ can delete directly
+            if (check.CanDeleteDirectly)
+            {
+                var deleted = await _taskRepo.DeleteWhereAsync(
+                    t => t.Id == taskId && t.UserId == userId);
+
+                return new DeleteTaskResult
+                {
+                    Success = deleted > 0
+                };
+            }
+
+            // ⚠️ schedule conflict
+            return new DeleteTaskResult
+            {
+                Success = false,
+                HasScheduleConflict = true,
+                Message = check.Message,
+                Options = new List<string>
+        {
+            "ReplaceTask",
+            "ReplanSchedule",
+            "ClearSlot",
+            "Cancel"
+        }
+            };
+
+
+
 
         }
 
@@ -169,9 +211,9 @@ namespace PMS.Application.Services.taskservices
                     (
                         from == null && to == null
                         ||
-                        (t.Deadline >= from && t.Deadline <= to)
+                        (t.Deadline >= from || t.Deadline <= to)
                         ||
-                        (t.EarliestStart <= to && t.LatestEnd >= from)
+                        (t.EarliestStart <= to || t.LatestEnd >= from)
                         ),
 
                     task => new TaskDto
@@ -232,7 +274,7 @@ namespace PMS.Application.Services.taskservices
                  Title = t.Title,
                  Description = t.Description,
 
-                 DurationInMinutes = (int)t.Duration.TotalMinutes,
+                 DurationInMinutes = t.Duration != null ? (int)t.Duration.TotalMinutes: 0,
                  Deadline = t.Deadline,
 
                  EarliestStart = t.EarliestStart,
@@ -249,7 +291,7 @@ namespace PMS.Application.Services.taskservices
 
         public async Task<List<TaskDto>> GetByUserAsync(int userId)
         {
-            return await _taskRepo.FindAsyncAdvanced(
+            var tasks= await _taskRepo.FindAsyncAdvanced(
               t => t.UserId == userId,
               t => new TaskDto
               {
@@ -268,6 +310,7 @@ namespace PMS.Application.Services.taskservices
 
                   Status = t.Status
               });
+            return tasks ?? new List<TaskDto>();
         }//
 
         public async Task<List<TaskDto>> SearchAsync(int userId, string keyword)
@@ -420,6 +463,65 @@ namespace PMS.Application.Services.taskservices
 
             //this task is replaced in all schedules m,w,d because i want delete it
         }
+
+        public async Task<DeleteTaskResult> ResolveDeleteAsync(int taskId,int userId,string option,int newTaskId)
+        {
+            var task = await _taskRepo.FindOneAsync(
+                t => t.Id == taskId && t.UserId == userId);
+
+            if (task == null)
+                return new DeleteTaskResult { Success = false, Message = "Task not found" };
+
+            var schedules = await _scheduleTaskRepo.FindAsync(st => st.TaskId == taskId);
+
+            switch (option)
+            {
+                case "ReplaceTask":
+
+                    if (newTaskId==null)
+                        return new DeleteTaskResult { Success = false, Message = "NewTaskId required" };
+
+                    var isValid = await _taskRepo.ExistsAsync(t => t.Id == newTaskId && t.UserId == userId && t.Status.Equals(2));
+
+                    if (!isValid)
+                        return new DeleteTaskResult { Success = false, Message = "Invalid task" };
+
+                    foreach (var s in schedules)
+                        s.TaskId = newTaskId;
+
+                    await _uow.SaveChangesAsync();
+
+                    return new DeleteTaskResult { Success = true };
+
+                case "ReplanSchedule":
+                    // logic بتاعك هنا
+                    return new DeleteTaskResult { Success = true };
+
+                case "ClearSlot":
+                    foreach (var s in schedules)
+                        s.TaskId = null;
+
+                    await _uow.SaveChangesAsync();
+
+                    return new DeleteTaskResult { Success = true };
+
+                case "Cancel":
+                    return new DeleteTaskResult
+                    {
+                        Success = false,
+                        Message = "Operation cancelled"
+                    };
+
+                default:
+                    return new DeleteTaskResult
+                    {
+                        Success = false,
+                        Message = "Invalid option"
+                    };
+            }
+        }
+
+
     }
 
 

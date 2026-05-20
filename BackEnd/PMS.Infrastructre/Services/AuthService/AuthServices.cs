@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PMS.Application.DTO.Auth;
@@ -67,7 +68,7 @@ namespace PMS.Application.Services.AuthService
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
             authModel.Email = user.Email;
             authModel.UserName = user.UserName;
-            // authModel.ExpiresOn = jwtToken.ValidTo;
+            authModel.ExpiresOn = jwtToken.ValidTo;
             authModel.Roles = rolesList.ToList();
 
             if (user.RefreshTokens.Any(t => t.IsActive))
@@ -114,12 +115,12 @@ namespace PMS.Application.Services.AuthService
                 if (await _userManager.FindByEmailAsync(request.Email) is not null)
                     return new AuthModel { Message = "Email is already registered!" };
 
-                if (await _userManager.FindByNameAsync(request.FullName) is not null)
+                if (await _userManager.FindByNameAsync(request.UserName) is not null)
                     return new AuthModel { Message = "Username is already registered!" };
 
                 identityUser = new AppUser
                 {
-                    UserName = request.FullName,
+                    UserName = request.UserName,
                     Email = request.Email,
 
                 };
@@ -157,7 +158,7 @@ namespace PMS.Application.Services.AuthService
                 {
                     IdentityUserId = identityUser.Id,
                     Email = identityUser.Email,
-                    Name = request.FullName,
+                    Name = request.UserName,
                     CreatedAt = DateTime.UtcNow,
                 };
 
@@ -181,14 +182,29 @@ namespace PMS.Application.Services.AuthService
 
                     return new AuthModel { Message = errors };
                 }
+                //  var jwtToken = await _tokenService.GenerateJwtAsync(identityUser);
+
+                //////////////////////////////////////////////////
                 var jwtToken = await _tokenService.GenerateJwtAsync(identityUser);
+
+                var refreshToken = GenerateRefreshToken();
+
+                identityUser.RefreshTokens.Add(refreshToken);
+
+                await _userManager.UpdateAsync(identityUser);
+
+
+
+                //////////////////////////////////////////////////
                 return new AuthModel
                 {
                     Email = identityUser.Email,
-                    //ExpiresOn = jwtToken.ValidTo,
+                    ExpiresOn = jwtToken.ValidTo,//
                     IsAuthenticated = true,
                     Roles = new List<string> { "User" },
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),//
+                    RefreshToken = refreshToken.Token,//
+                    RefreshTokenExpiration = refreshToken.ExpiresOn,//
                     UserName = identityUser.UserName
                 };
             }
@@ -262,21 +278,37 @@ namespace PMS.Application.Services.AuthService
             };
         }
 
-        public async Task<bool> RevokeTokenAsync(string token)
+        
+        public async Task<bool> RevokeTokenAsync(int userId)
         {
-            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+            var user= await _user.FindOneAsync(u=>u.Id==userId);
 
             if (user == null)
                 return false;
 
-            var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+            var useridentity = await _userManager.FindByIdAsync(user.IdentityUserId);//.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.IsActive==true));
 
-            if (!refreshToken.IsActive)
+            if (useridentity == null)
                 return false;
 
-            refreshToken.RevokedOn = DateTime.UtcNow;
+            var refreshTokens=useridentity.RefreshTokens.Where(r=>r.IsActive).ToList();
 
-            await _userManager.UpdateAsync(user);
+            if (!refreshTokens.Any())
+                return false;
+
+            foreach (var refreshToken in refreshTokens)
+            {
+                refreshToken.RevokedOn = DateTime.UtcNow;
+            }
+
+            //var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+
+            //if (!refreshToken.IsActive)
+            //    return false;
+
+            //refreshToken.RevokedOn = DateTime.UtcNow;
+
+            await _userManager.UpdateAsync(useridentity);
 
             return true;
         }

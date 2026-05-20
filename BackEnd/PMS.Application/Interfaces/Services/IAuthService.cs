@@ -12,6 +12,6 @@ namespace PMS.Application.Interfaces.Services
         Task<AuthModel> RegisterAsync(RegisterDto dto);
         Task<AuthModel> LoginAsync(LoginDto dto);
         Task<AuthModel> RefreshTokenAsync(string token);
-        Task<bool> RevokeTokenAsync(string token);
+        Task<bool> RevokeTokenAsync(int UserId);
     }
 }

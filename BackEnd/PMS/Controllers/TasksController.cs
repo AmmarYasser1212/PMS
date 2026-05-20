@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PMS.Application.DTO.Task;
 using PMS.Application.Interfaces.Services;
 using PMS.Helpers;
+//using Swashbuckle.AspNetCore.Annotations;
 
 namespace PMS.Controllers
 {
@@ -19,12 +20,17 @@ namespace PMS.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateTaskDto dto,int? CategoryId)
+
+        //[SwaggerOperation( Summary = "Create Task", Description = "Creates a new task for the authenticated user")]
+        [ProducesResponseType(typeof(TaskDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Create([FromBody] CreateTaskDto dto, [FromQuery] int? CategoryId=null)
         {
             var UserId = User.GetBusinessUserId();
             var result = await _taskService.CreateAsync(dto,UserId,CategoryId);
             if(result==null)
-                return BadRequest();
+                return BadRequest("Task Creation Faild");
             //return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
             return Ok(result);
         }//
@@ -45,40 +51,48 @@ namespace PMS.Controllers
         {
             var UserId = User.GetBusinessUserId();
             var tasks = await _taskService.GetByUserAsync(UserId);
-            if(tasks == null)
-                return NotFound();
+            //if(tasks == null)
+            //    return NotFound();
             return Ok(tasks);
         }//
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] UpdateTaskDto dto,int TaskId)
+        [HttpPut("{taskId}")]
+        public async Task<IActionResult> Update([FromBody] UpdateTaskDto dto, int taskId)
         {
             var UserId = User.GetBusinessUserId();
-            var result = await _taskService.UpdateAsync(dto,TaskId,UserId);
+            var result = await _taskService.UpdateAsync(dto,taskId,UserId);
             if (!result)
                 return NotFound();
 
-            return Ok();
+            return NoContent(); ;
         }//
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteById(int Taskid)
+        [HttpDelete("{taskId}")]
+        public async Task<IActionResult> Delete(int taskId)
         {
-            var UserId = User.GetBusinessUserId();
-            var result = await _taskService.DeleteAsync(Taskid, UserId);
-            if (!result)
-                return NotFound();
+            var userId = User.GetBusinessUserId();
 
-            return Ok();
-        }//
+            var result = await _taskService.DeleteAsync(taskId, userId);
+
+            if (result.NotFound)
+                return NotFound(result.Message);
+
+            if (result.HasScheduleConflict)
+                return Conflict(result);
+          
+
+            if (result.Success)
+                return NoContent();
+
+            return BadRequest(result.Message);
+        }
 
 
-
-        [HttpPatch("{Taskid}/status")]
-        public async Task<IActionResult> ChangeStatus(int TaskId,[FromQuery] string status)
+        [HttpPut("{Taskid}/status")]
+        public async Task<IActionResult> ChangeStatus(int Taskid,[FromBody] string status)
         {
            var  userId = User.GetBusinessUserId();
-            var result = await _taskService.ChangeStatusAsync(TaskId, status, userId);
+            var result = await _taskService.ChangeStatusAsync(Taskid, status, userId);
             if (!result)
                 return BadRequest();
 
@@ -105,5 +119,18 @@ namespace PMS.Controllers
             return Ok(tasks);
         }//
 
+
+        [HttpPost("{taskId}/resolve-delete")]
+        public async Task<IActionResult> ResolveDelete(int taskId, [FromBody] DeleteResolutionRequest request)
+        {
+            var userId = User.GetBusinessUserId();
+
+            var result = await _taskService.ResolveDeleteAsync(taskId,userId,request.Option,(int)request.NewTaskId);
+
+            if (!result.Success)
+                return BadRequest(result.Message);
+
+            return Ok(result);
+        }
     }
 }

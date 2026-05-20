@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using PMS.Application.DTO.Auth;
 using PMS.Application.Interfaces.Services;
+using PMS.Helpers;
 
 namespace PMS.Controllers
 {
@@ -27,10 +30,11 @@ namespace PMS.Controllers
 
             if (!result.IsAuthenticated)
                 return BadRequest(result.Message);
+            SetTokenInCookie(result.Token, result.ExpiresOn);//
+            SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);//
 
-            SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
 
-            return Ok(new {Token=result.Token,/*ExpiresOn=result.ExpiresOn*/});
+            return Ok();
         }
 
         [HttpPost("login")]
@@ -47,7 +51,9 @@ namespace PMS.Controllers
             if (!string.IsNullOrEmpty(result.RefreshToken))
                 SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
 
-            return Ok(result);
+            SetTokenInCookie(result.Token,result.ExpiresOn /*DateTime.UtcNow.AddDays(7)*/);
+
+            return Ok();
         }
 
         [HttpGet("refreshToken")]
@@ -60,29 +66,35 @@ namespace PMS.Controllers
             if (!result.IsAuthenticated)
                 return BadRequest(result);
 
+
+            SetTokenInCookie(result.Token, result.ExpiresOn /*DateTime.UtcNow.AddDays(7)*/);
             SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
 
-            return Ok(result);
+
+            return Ok();
         }
-
+        [Authorize(Roles = "User")]
         [HttpPost("revokeToken")]
-        public async Task<IActionResult> RevokeToken([FromBody] RevokeToken model)
+        public async Task<IActionResult> RevokeToken(/*[FromBody] RevokeToken model*/)
         {
-            var token = model.Token ?? Request.Cookies["refreshToken"];
+            var userId = User.GetBusinessUserId();
 
-            if (string.IsNullOrEmpty(token))
-                return BadRequest("Token is required!");
-
-            var result = await _authService.RevokeTokenAsync(token);
+            var result = await _authService.RevokeTokenAsync(userId);
 
             if (!result)
                 return BadRequest("Token is invalid!");
 
-            return Ok();
+            // 🧹 clear cookies
+            Response.Cookies.Delete("Token");
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok("Logged out successfully");
         }
 
         private void SetRefreshTokenInCookie(string refreshToken, DateTime expires)
         {
+            if (expires <= DateTime.UtcNow)
+                expires = DateTime.UtcNow.AddDays(7);
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
@@ -94,5 +106,22 @@ namespace PMS.Controllers
 
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
+             private void SetTokenInCookie(string token, DateTime expires)
+        {
+            if (expires <= DateTime.UtcNow)
+                expires = DateTime.UtcNow.AddMinutes(15);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = expires.ToLocalTime(),
+                Secure = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.None
+            };
+
+            Response.Cookies.Append("Token",token, cookieOptions);
+        }
     }
-}
+    }
+
